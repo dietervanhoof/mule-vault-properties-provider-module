@@ -16,12 +16,12 @@ Install the project to your local repository with `mvn install` and add the depe
 ```
 
 ```xml
-	<vault-properties-provider:config
-		name="Vault_Properties_Provider_Config"
-		doc:name="Vault Properties Provider Config"
-		token="s.azPGNwcNroSWmceZGtMtYH7U"
-		path="secret/vault-test"
-		address="http://localhost:8200"/>
+<vault-properties-provider:config
+  name="Vault_Properties_Provider_Config"
+  doc:name="Vault Properties Provider Config"
+  token="s.azPGNwcNroSWmceZGtMtYH7U"
+  path="secret/vault-test"
+  address="http://localhost:8200"/>
 ```
 
 Then get the property value with the `vault::` prefix:
