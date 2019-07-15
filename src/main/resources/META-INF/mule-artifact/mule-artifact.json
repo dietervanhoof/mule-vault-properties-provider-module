@@ -1,0 +1,26 @@
+{
+  "minMuleVersion": "4.1.0",
+  "requiredProduct": "MULE",
+  "extensionModelLoaderDescriptor": {
+    "id": "crafted",
+    "attributes": {
+      "type": "be.dotsandarrows.custom.provider.api.VaultPropertiesExtensionLoadingDelegate"
+    }
+  },
+  "name": "mule-vault-properties-provider-module",
+  "classLoaderModelLoaderDescriptor": {
+    "id": "mule",
+    "attributes": {
+      "exportedPackages": [
+        "be.dotsandarrows.custom.provider.api"
+      ],
+      "exportedResources": [
+        "META-INF/services/org.mule.runtime.config.api.dsl.model.properties.ConfigurationPropertiesProviderFactory"
+      ]
+    }
+  },
+  "bundleDescriptorLoader": {
+    "id": "mule",
+    "attributes": {}
+  }
+}
