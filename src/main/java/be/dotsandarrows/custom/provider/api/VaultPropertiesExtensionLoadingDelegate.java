@@ -16,6 +16,7 @@ import org.mule.runtime.api.meta.ExpressionSupport;
 import org.mule.runtime.api.meta.model.declaration.fluent.ConfigurationDeclarer;
 import org.mule.runtime.api.meta.model.declaration.fluent.ExtensionDeclarer;
 import org.mule.runtime.api.meta.model.declaration.fluent.ParameterGroupDeclarer;
+import org.mule.runtime.api.meta.model.display.DisplayModel;
 import org.mule.runtime.extension.api.loader.ExtensionLoadingContext;
 import org.mule.runtime.extension.api.loader.ExtensionLoadingDelegate;
 
@@ -41,9 +42,13 @@ public class VaultPropertiesExtensionLoadingDelegate implements ExtensionLoading
 
     ParameterGroupDeclarer defaultParameterGroup = configurationDeclarer.onDefaultParameterGroup();
     defaultParameterGroup
-        .withRequiredParameter("token").ofType(BaseTypeBuilder.create(JAVA).stringType().build())
+        .withRequiredParameter("roleId").ofType(BaseTypeBuilder.create(JAVA).stringType().build())
         .withExpressionSupport(SUPPORTED)
-        .describedAs("The token to use to connect to Vault");
+        .describedAs("The role-id to use to connect to Vault");
+    defaultParameterGroup
+            .withRequiredParameter("secretId").ofType(BaseTypeBuilder.create(JAVA).stringType().build())
+            .withExpressionSupport(SUPPORTED)
+            .describedAs("The secret-id to use to connect to Vault");
     defaultParameterGroup
             .withRequiredParameter("path").ofType(BaseTypeBuilder.create(JAVA).stringType().build())
             .withExpressionSupport(SUPPORTED)

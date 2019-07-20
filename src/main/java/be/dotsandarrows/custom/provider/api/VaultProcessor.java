@@ -3,6 +3,7 @@ package be.dotsandarrows.custom.provider.api;
 import com.bettercloud.vault.Vault;
 import com.bettercloud.vault.VaultConfig;
 import com.bettercloud.vault.VaultException;
+import com.bettercloud.vault.api.Auth;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -14,33 +15,57 @@ public class VaultProcessor {
 	private final Log logger = LogFactory.getLog(getClass());
 	
     private String address;
-    private String token;
+    private String appRoleId;
+    private String appRoleSecret;
     private String path;
     private Integer maxRetries = 10;
     private Integer interval = 5000;
         
     private VaultConfig config;
-
+    private Vault vault;
     private Properties props = new Properties();
 
-    protected void getProperties() {
-        logger.warn("Getting properties from Vault");
-        try {
-            config = new VaultConfig()
-                    .address(address)
-                    .token(token)
-                    .engineVersion(2)
-                    .build();
-            final Vault vault = new Vault(config);
-            Map<String, String> data = vault
-            		.withRetries(maxRetries, interval)
-            		.logical()
-                    .read(path)
-                    .getData();
-            props.putAll(data);
-        } catch (VaultException e) {
-            e.printStackTrace();
-        }
+    public VaultProcessor(String address, String appRoleId, String appRoleSecret, String path, String maxRetries, String interval) throws VaultException {
+        // Set all relevant properties
+        this.address = address;
+        this.appRoleId = appRoleId;
+        this.appRoleSecret = appRoleSecret;
+        this.path = path;
+        this.setMaxRetries(maxRetries);
+        this.setInterval(interval);
+
+        // Initialize the vault config
+        this.config = this.initializeConfig();
+
+        // Initialize the Vault object
+        this.vault = new Vault(this.config);
+
+        // Authenticate with Vault
+        this.authenticate();
+
+        // Get all properties and store them locally
+        this.getAllProperties();
+    }
+
+    private VaultConfig initializeConfig() throws VaultException {
+        logger.debug("Initializing Vault config");
+        return new VaultConfig()
+                .address(address)
+                .engineVersion(2)
+                .build();
+    }
+
+    private void authenticate() throws VaultException {
+        this.vault.auth().loginByAppRole(appRoleId, appRoleSecret);
+    }
+
+    private void getAllProperties() throws VaultException {
+        Map<String, String> data = vault
+                .withRetries(this.maxRetries, this.interval)
+                .logical()
+                .read(path)
+                .getData();
+        props.putAll(data);
     }
 
     public String getProperty(String key) {
@@ -52,9 +77,12 @@ public class VaultProcessor {
         this.address = address;
     }
 
-    public void setToken(String token) {
-    	logger.debug("Setting token to " + token);
-        this.token = token;
+    public void setAppRoleId(String appRoleId) {
+        this.appRoleId = appRoleId;
+    }
+
+    public void setAppRoleSecret(String appRoleSecret) {
+        this.appRoleSecret = appRoleSecret;
     }
 
     public void setPath(String path) {

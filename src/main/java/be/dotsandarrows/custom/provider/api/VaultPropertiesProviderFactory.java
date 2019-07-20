@@ -10,6 +10,7 @@ import static be.dotsandarrows.custom.provider.api.VaultPropertiesExtensionLoadi
 import static be.dotsandarrows.custom.provider.api.VaultPropertiesExtensionLoadingDelegate.EXTENSION_NAME;
 import static org.mule.runtime.api.component.ComponentIdentifier.builder;
 
+import com.bettercloud.vault.VaultException;
 import com.sun.media.jfxmedia.logging.Logger;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -20,6 +21,7 @@ import org.mule.runtime.config.api.dsl.model.properties.ConfigurationPropertiesP
 import org.mule.runtime.config.api.dsl.model.properties.ConfigurationPropertiesProviderFactory;
 import org.mule.runtime.config.api.dsl.model.properties.ConfigurationProperty;
 
+import java.net.ConnectException;
 import java.util.Optional;
 
 /**
@@ -28,6 +30,12 @@ import java.util.Optional;
  * @since 1.0
  */
 public class VaultPropertiesProviderFactory implements ConfigurationPropertiesProviderFactory {
+  private static final String ROLE_ID = "roleId";
+  private static final String SECRET_ID = "secretId";
+  private static final String PATH = "path";
+  private static final String ADDRESS = "address";
+  private static final String MAX_RETRIES = "maxRetries";
+  private static final String INTERVAL = "interval";
 
   public static final String EXTENSION_NAMESPACE =
       EXTENSION_NAME.toLowerCase().replace(" ", "-");
@@ -44,26 +52,26 @@ public class VaultPropertiesProviderFactory implements ConfigurationPropertiesPr
   @Override
   public ConfigurationPropertiesProvider createProvider(ConfigurationParameters parameters,
                                                         ResourceProvider externalResourceProvider) {
-
-    // This is how you can access the configuration parameter of the <custom-properties-provider:config> element.
-    String token = parameters.getStringParameter("token");
-    String path = parameters.getStringParameter("path");
-    String address = parameters.getStringParameter("address");
-    String maxRetries = parameters.getStringParameter("maxRetries");
-    String interval = parameters.getStringParameter("interval");
-
+    String roleId = parameters.getStringParameter(ROLE_ID);
+    String secretId = parameters.getStringParameter(SECRET_ID);
+    String path = parameters.getStringParameter(PATH);
+    String address = parameters.getStringParameter(ADDRESS);
+    String maxRetries = parameters.getStringParameter(MAX_RETRIES);
+    String interval = parameters.getStringParameter(INTERVAL);
+    VaultProcessor processor = null;
     logger.debug("Connecting to " + address + " with path " + path);
-    VaultProcessor processor = new VaultProcessor();
-    processor.setAddress(address);
-    processor.setToken(token);
-    processor.setPath(path);
-    processor.setInterval(interval);
-    processor.setMaxRetries(maxRetries);
-    processor.getProperties();
+    try {
+       processor = new VaultProcessor(address, roleId, secretId, path, maxRetries, interval);
+    }
+    catch (VaultException e) {
+      logger.error("There was an error connecting to Vault: " + e.getMessage());
+      throw new IllegalArgumentException(e.getMessage());
+    }
+
+    VaultProcessor finalProcessor = processor;
     return new ConfigurationPropertiesProvider() {
       @Override
       public Optional<ConfigurationProperty> getConfigurationProperty(String configurationAttributeKey) {
-        // TODO change implementation to discover properties values from your custom source
         logger.debug("Need to get property with key: " + configurationAttributeKey);
         if (configurationAttributeKey.startsWith(CUSTOM_PROPERTIES_PREFIX)) {
           String effectiveKey = configurationAttributeKey.substring(CUSTOM_PROPERTIES_PREFIX.length());
@@ -76,7 +84,9 @@ public class VaultPropertiesProviderFactory implements ConfigurationPropertiesPr
 
             @Override
             public Object getRawValue() {
-              return processor.getProperty(effectiveKey);
+              if (finalProcessor != null)
+                return finalProcessor.getProperty(effectiveKey);
+              return Optional.empty();
             }
 
             @Override
