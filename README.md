@@ -10,7 +10,7 @@ Install the project to your local repository with `mvn install` and add the depe
 <dependency>
   <groupId>be.dotsandarrows</groupId>
   <artifactId>mule-vault-properties-provider-module</artifactId>
-  <version>1.0.0-SNAPSHOT</version>
+  <version>1.0.1-SNAPSHOT</version>
   <classifier>mule-plugin</classifier>
 </dependency>
 ```
@@ -19,9 +19,11 @@ Install the project to your local repository with `mvn install` and add the depe
 <vault-properties-provider:config
   name="Vault_Properties_Provider_Config"
   doc:name="Vault Properties Provider Config"
-  token="s.azPGNwcNroSWmceZGtMtYH7U"
-  path="secret/vault-test"
-  address="http://localhost:8200"/>
+  doc:id="9bff00dd-f858-4ebb-bc02-1d6f0c66c410"
+  roleId="bddc3adf-67f7-81db-b088-71628e04ae84"
+  secretId="f6cfd155-f9d4-e839-e8cf-7341a2704f61"
+  path="secret/${app.name}"
+  address="http://localhost:8200" />
 ```
 
 Then get the property value with the `vault::` prefix:
